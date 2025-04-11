@@ -1,0 +1,39 @@
+Feature,Phase
+Admin Login,MVP
+Admin Dashboard (basic),MVP
+File Upload Form,MVP
+Link and Passcode Generation,MVP
+Email Sending,MVP
+Secure Link Landing Page,MVP
+Passcode Entry UI,MVP
+File Download Button,MVP
+Link Expiry Handling (basic),MVP
+Database Setup,MVP
+Static File Hosting,MVP
+Self-contained Build,MVP
+Passcode Hashing,Phase 1
+Rate Limiting,Phase 1
+CAPTCHA Integration,Phase 1
+One-Time Access Enforcement,Phase 1
+Secure File Paths,Phase 1
+File Access Control,Phase 1
+Audit Logging,Phase 1
+IP Logging,Phase 1
+QR Code Access,Phase 1
+Admin Roles and Role-Based Access,Phase 1
+SSL Setup,Phase 1
+Feature Toggles (Backend),Phase 1
+Environment Config (Backend),Phase 1
+Cleanup Scheduler,Phase 1
+Multilingual Support,Phase 2
+Upload Progress UI,Phase 2
+Audit Log View,Phase 2
+Cleanup Actions,Phase 2
+QR Code Generation UI,Phase 2
+Branding & Theming,Phase 2
+Email Template Customization,Phase 2
+Mobile-Friendly Responsive UI,Phase 2
+Compression/Decompression Engine (GZip/LZ4),Phase 2
+CAPTCHA Key Config,Phase 2
+Frontend Theming & Animation,Phase 2
+"Admin Dashboard (Advanced Filtering, Stats)",Phase 2

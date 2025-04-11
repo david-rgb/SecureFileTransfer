@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "xpbEoma5lRUz8td40+SLbeTwgHOYkF0gzV6DCM81qM4=",
+  "Source": "SecureFileSender.Api",
+  "BasePath": "_content/SecureFileSender.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

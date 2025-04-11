@@ -1,0 +1,42 @@
+Section,Feature,Frontend,Backend
+Admin Features,Admin Login,"Login form, session handling","JWT auth, roles (Admin, SuperAdmin, Viewer)"
+Admin Features,Admin Dashboard,"Client list, link statuses, download counts, UI","API for dashboard data, DB models for clients/links"
+Admin Features,File Upload Form,"Inputs for email, receiver details, files, expiration","Multipart file handling, metadata validation and save"
+Admin Features,Upload Progress UI,Visual upload progress indicator,Streamed file handling and chunk processing
+Admin Features,Feature Toggles,UI adapts based on enabled features,"Feature flags in appsettings.json, conditional logic"
+Admin Features,Link and Passcode Generation,—,"Generate one-time link, secure passcode, DB save"
+Admin Features,Email Sending,Trigger on form submit,Send email via SMTP with link and passcode
+Admin Features,Audit Log View,Optional SuperAdmin log viewer,"Track actions: uploads, link gen, deletions"
+Admin Features,Cleanup Actions,Manual cleanup button,API to delete files or expire links
+Admin Features,QR Code Generation,Display/download QR code,Generate QR codes server-side
+Admin Features,Branding & Theming,"Theme switcher, layout customization",Serve settings for branding
+User Features,Secure Link Landing Page,"Greeting, image, passcode prompt","Validate link, check expiration and usage"
+User Features,Passcode Entry UI,Form for passcode input,Verify hashed passcode with rate limiting
+User Features,CAPTCHA,Show CAPTCHA after failed attempts or always,CAPTCHA verification (Google reCAPTCHA/hCaptcha)
+User Features,One-Time Access Enforcement,Hide UI after download,"Mark link as used, prevent reuse"
+User Features,File Download Button,Visible after validation,Decompress and serve files securely
+User Features,Link Expiry Handling,Show message on expired/used links,Invalidate expired/reused links in DB
+User Features,Multilingual Support,i18n-ready UI,Localized responses if needed
+User Features,QR Code Access,Show QR code for download link,Serve same content via QR URL
+Security Features,Passcode Hashing,—,Hashed + salted passcodes (bcrypt/PBKDF2)
+Security Features,Rate Limiting,Disable submit button temporarily,"Enforce server-side limit, lockout after retries"
+Security Features,CAPTCHA,Show CAPTCHA on validation form,Server-side CAPTCHA validation
+Security Features,HTTPS Enforcement,Use secure URLs,Redirect HTTP to HTTPS
+Security Features,Link Expiry Handling,Notify user,Check expiration before serving
+Security Features,File Access Control,—,Restrict file access to validated users
+Security Features,Secure File Paths,—,"Obfuscated paths, store files outside public webroot"
+Security Features,Admin Auth,JWT + refresh token,"Secure login, role-based access"
+Security Features,Audit Logging,—,Log admin and download actions
+Security Features,IP Logging,—,Log IPs of access attempts
+Deployment Tasks,Project Structure Setup,Scaffold SvelteKit frontend and .NET backend,
+Deployment Tasks,Build Process,Configure frontend build and output,
+Deployment Tasks,SMTP Config,"Test email sending, secure SMTP creds",
+Deployment Tasks,Database Setup,Schema definition and migrations,
+Deployment Tasks,File Storage Config,Secure folder structure for uploads,
+Deployment Tasks,Compression Setup,GZip/LZ4 file compression integration,
+Deployment Tasks,Static File Hosting,Serve frontend/public files from backend,
+Deployment Tasks,SSL Setup,Use cPanel SSL certificates for HTTPS,
+Deployment Tasks,Cleanup Scheduler,Job to delete expired or used files,
+Deployment Tasks,Environment Config,Feature toggles in appsettings.json,
+Deployment Tasks,Self-contained Build,Publish .NET app for file-based deployment,
+Deployment Tasks,CAPTCHA Key Config,Secure storage of CAPTCHA keys,

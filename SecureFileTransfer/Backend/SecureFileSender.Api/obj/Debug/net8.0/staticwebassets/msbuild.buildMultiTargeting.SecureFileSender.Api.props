@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\SecureFileSender.Api.props" />
+</Project>
