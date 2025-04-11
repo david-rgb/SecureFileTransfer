@@ -3,5 +3,5 @@
 	"/admin/dashboard": [],
 	"/admin/login": [],
 	"/admin/send": [],
-	"/download/[id]": []
+	"/download/[token]": []
 }

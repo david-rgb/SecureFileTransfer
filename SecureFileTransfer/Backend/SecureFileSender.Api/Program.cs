@@ -1,19 +1,16 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using SecureFileSender.Api.Data;
 using Microsoft.EntityFrameworkCore;
+using SecureFileSender.Api.Data;
+
 var builder = WebApplication.CreateBuilder(args);
-
-
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 	options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 1️⃣ Add Controllers (for AuthController and others)
 builder.Services.AddControllers();
 
-// 2️⃣ Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 	.AddJwtBearer(options =>
 	{
@@ -29,26 +26,38 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 		};
 	});
 
-// 3️⃣ Swagger + OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors(options =>
+{
+	options.AddDefaultPolicy(policy =>
+	{
+		policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+	});
+});
 
 var app = builder.Build();
 
-// 4️⃣ Swagger setup
 if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
 
-// 5️⃣ Middleware
-//app.UseHttpsRedirection(); // Disabled for dev only
-
-app.UseAuthentication(); // <-- REQUIRED: JWT auth middleware
+app.UseCors();
+// app.UseHttpsRedirection(); // Commented for local dev
+app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 
-app.MapControllers(); // <-- Maps controller routes like /api/auth/login
+// 🧠 Ensure migration + seed AFTER build
+using (var scope = app.Services.CreateScope())
+{
+	var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+	db.Database.Migrate(); // 🔄 Apply migrations
 
-SecureFileSender.Api.Data.Seed.EnsureSeeded(app);
+	// ✅ Safe now to seed
+	SecureFileSender.Api.Data.Seed.EnsureSeeded(app);
+}
+
 app.Run();

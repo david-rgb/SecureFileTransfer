@@ -17,7 +17,7 @@ export const dictionary = {
 		"/admin/dashboard": [3],
 		"/admin/login": [4],
 		"/admin/send": [5],
-		"/download/[id]": [6]
+		"/download/[token]": [6]
 	};
 
 export const hooks = {

@@ -20,7 +20,7 @@ public class AuthController : ControllerBase
 	[HttpPost("login")]
     public IActionResult Login([FromBody] LoginRequestDto request)
     {
-        var user = _db.AdminUsers.FirstOrDefault(u => u.Email == request.Email);
+        var user = _db.AdminUsers.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
         if (user != null && PasswordHasher.Verify(request.Password, user.PasswordHash))
         {
             var token = JwtTokenGenerator.GenerateToken(user.Email, _config);

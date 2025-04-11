@@ -1,1 +1,0 @@
-<script>export const load = () => { return { redirect: '/admin/login' } }</script>

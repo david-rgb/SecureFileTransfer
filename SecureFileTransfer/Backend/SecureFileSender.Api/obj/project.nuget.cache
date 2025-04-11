@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "oeneE1Eq26I=",
+  "dgSpecHash": "OI+i4qHUD/c=",
   "success": true,
   "projectFilePath": "C:\\Users\\david\\OneDrive\\Desktop\\Projekti\\SecureFileTranfer\\SecureFileTransfer\\Backend\\SecureFileSender.Api\\SecureFileSender.Api.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\david\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\david\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\david\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.4\\microsoft.aspnetcore.authentication.jwtbearer.8.0.4.nupkg.sha512",
     "C:\\Users\\david\\.nuget\\packages\\microsoft.aspnetcore.openapi\\8.0.14\\microsoft.aspnetcore.openapi.8.0.14.nupkg.sha512",

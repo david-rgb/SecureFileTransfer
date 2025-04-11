@@ -1,1 +1,0 @@
-<form><input type='file' multiple><button>Send</button></form>
