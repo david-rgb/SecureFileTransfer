@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SecureFileSender.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5e47f4fd2c0b405383391879b222f353a7718071")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8489ab859c8e14b56b7cdd2dee4b4c59af82d81c")]
 [assembly: System.Reflection.AssemblyProductAttribute("SecureFileSender.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SecureFileSender.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

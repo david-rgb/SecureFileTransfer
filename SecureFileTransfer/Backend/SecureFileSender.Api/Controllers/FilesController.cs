@@ -117,6 +117,8 @@ foreach (var l in links)
 {
     Console.WriteLine($"Link path: {l.FilePath}");
 }
+    link.DownloadCount++;
+    await _db.SaveChangesAsync();
     var stream = new FileStream(link.FilePath, FileMode.Open, FileAccess.Read);
     var fileName = Path.GetFileName(link.FilePath);
     return File(stream, "application/octet-stream", fileName);
