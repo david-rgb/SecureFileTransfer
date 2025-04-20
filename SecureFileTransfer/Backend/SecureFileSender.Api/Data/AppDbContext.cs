@@ -11,5 +11,8 @@ public class AppDbContext : DbContext
     public DbSet<UploadedFile> UploadedFiles { get; set; }
     public DbSet<SharedFileLink> SharedFileLinks { get; set; }
     public DbSet<Customer> Customers { get; set; }
+    public DbSet<EmailSettings> EmailSettings { get; set; }
+    public DbSet<UploadSession> UploadSessions { get; set; }
+    public DbSet<DownloadLink> DownloadLinks { get; set; }
 
 }

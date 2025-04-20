@@ -1,4 +1,4 @@
-node_modules
+**/node_modules
 **/bin
 Backend/SecureFileSender.Api/bin
 
@@ -19,6 +19,7 @@ Thumbs.db
 .env.*
 !.env.example
 !.env.test
+**/uploads
 
 # Vite
 vite.config.js.timestamp-*

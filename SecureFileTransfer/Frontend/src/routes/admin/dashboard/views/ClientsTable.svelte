@@ -1,22 +1,46 @@
 <script lang="ts">
-	export let customers: { name: string; email: string; downloadCount: number }[];
+	import Table from '$lib/components/Table.svelte';
+
+	export let customers: any[] = [];
+
+	const baseUrl = 'http://localhost:5173/download';
+
+	const columns = ['name', 'email', 'downloadCount', 'link'];
+
+	$: rows = customers.map(customer => {
+		const slug = `${customer.name.toLowerCase().replace(/\s+/g, '-')}-${customer.id}`;
+		return {
+			id: customer.id,
+			name: customer.name,
+			email: customer.email,
+			downloadCount: customer.downloadCount,
+		};
+	});
+
+	async function handleDelete(id: number) {
+        const confirmed = confirm(
+            "Are you sure you want to delete this download link?",
+        );
+        if (!confirmed) return;
+
+        const token = localStorage.getItem("token");
+
+        const res = await fetch(
+            `http://localhost:5105/api/customers/${id}`,
+            {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            },
+        );
+
+        if (res.ok) {
+            customers = customers.filter((customer) => customer.id !== id);
+        } else {
+            alert("Failed to delete the download link.");
+        }
+    }
 </script>
 
-<table class="min-w-full text-sm table-auto">
-	<thead class="bg-gray-800 text-gray-400 uppercase text-left">
-		<tr>
-			<th class="px-4 py-2">Name</th>
-			<th class="px-4 py-2">Email</th>
-			<th class="px-4 py-2">Downloads</th>
-		</tr>
-	</thead>
-	<tbody>
-		{#each customers as customer}
-			<tr class="border-t border-gray-800 hover:bg-gray-800 transition">
-				<td class="px-4 py-2">{customer.name}</td>
-				<td class="px-4 py-2">{customer.email}</td>
-				<td class="px-4 py-2">{customer.downloadCount}</td>
-			</tr>
-		{/each}
-	</tbody>
-</table>
+<Table {columns} {rows} title="👥 Clients" onDelete={handleDelete} />

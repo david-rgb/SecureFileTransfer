@@ -6,5 +6,7 @@ public class ShareFileDto
     public string? Passcode { get; set; }
     public int ExpiresInDays { get; set; } = 7;
     public string CustomerName { get; set; } = null!;
+    public string CustomerLastName { get; set; } = null!;
     public string CustomerEmail { get; set; } = null!;
+    	public string? Slug { get; set; } // Optional custom slug
 }

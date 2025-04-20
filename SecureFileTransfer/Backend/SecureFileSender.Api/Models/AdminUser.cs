@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
+using SecureFileSender.Api.Models;
 namespace SecureFileSender.Api.Models;
 
 public class AdminUser
@@ -13,4 +13,7 @@ public class AdminUser
 
 	[Required]
 	public string PasswordHash { get; set; } = string.Empty;
+
+        public EmailSettings? EmailSettings { get; set; }
+
 }

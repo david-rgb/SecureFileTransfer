@@ -6,23 +6,30 @@
 		update(sentLinks.filter(link => link.status !== 'Expired'));
 	}
 
-	function clearAll() {
-		update([]);
-	}
+	async function clearAll() {
+        try {
+            await fetch('http://localhost:5105/api/dashboard/clear-links', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' }
+            })} catch (err: any) {
+		        alert(err.message)
+	}};
 </script>
 
-<div class="max-w-md mx-auto bg-gray-900 p-6 rounded-xl border border-gray-800 text-center space-y-4">
+<div class="w-full  max-h-full bg-gray-900 p-6 rounded-xl border border-gray-800 text-center space-y-4">
 	<h2 class="text-xl font-semibold mb-4">Cleanup Tools</h2>
 
 	<button
-		class="w-full rounded-lg bg-red-600 py-2 text-white font-semibold hover:bg-red-700 transition"
+		class="rounded-lg bg-red-600 py-2 text-white font-semibold hover:bg-red-700 transition"
+        style="width: 60%;"
 		on:click={deleteExpired}
 	>
 		Delete Expired Links
 	</button>
 
 	<button
-		class="w-full rounded-lg bg-yellow-600 py-2 text-white font-semibold hover:bg-yellow-700 transition"
+		class="rounded-lg bg-yellow-600 py-2 text-white font-semibold hover:bg-yellow-700 transition"
+        style="width: 60%;"
 		on:click={clearAll}
 	>
 		Clear All Links

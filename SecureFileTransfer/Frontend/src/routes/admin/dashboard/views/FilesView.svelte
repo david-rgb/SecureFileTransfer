@@ -1,55 +1,38 @@
 <script lang="ts">
-	export let sentLinks: {
-		token: string;
-		receiverName: string;
-		receiverEmail: string;
-		status: 'Expired' | 'Pending' | 'Downloaded'; // extend as needed
-		downloadCount: number;
-		expiresIn: number;
-		sentAt: string;
-	}[];
+	import Table from '$lib/components/Table.svelte';
+
+	export let files: any[] = [];
+
+	const columns = ['OriginalFileName', 'CompressedFileName', 'UploadedAt'];
+
+	$: rows = files.map(file => ({
+		id: file.id,
+		OriginalFileName: file.originalFileName,
+		CompressedFileName: file.compressedFileName,
+		UploadedAt: new Date(file.uploadedAt).toLocaleString()
+	}));
+
+
+	async function handleDelete(id: number) {
+	const confirmed = confirm("Are you sure you want to delete this download link?");
+	if (!confirmed) return;
+
+	const token = localStorage.getItem("token");
+
+	const res = await fetch(`http://localhost:5105/api/files/${id}`, {
+		method: "DELETE",
+		headers: {
+			Authorization: `Bearer ${token}`
+		}
+	});
+
+	if (res.ok) {
+		files = files.filter(file => file.id !== id);
+	} else {
+		alert("Failed to delete the download link.");
+	}
+}
+
 </script>
 
-<div class="overflow-auto rounded-xl border border-gray-800 bg-gray-900">
-	<table class="min-w-full table-auto">
-		<thead class="bg-gray-800 text-sm uppercase text-gray-400">
-			<tr>
-				<th class="px-6 py-4 text-left">Receiver</th>
-				<th class="px-6 py-4 text-left">Email</th>
-				<th class="px-6 py-4 text-left">Status</th>
-				<th class="px-6 py-4 text-left">Downloads</th>
-				<th class="px-6 py-4 text-left">Expires In</th>
-				<th class="px-6 py-4 text-left">Sent At</th>
-				<th class="px-6 py-4 text-left">Action</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each sentLinks as link}
-				<tr class="border-t border-gray-800 hover:bg-gray-800 transition">
-					<td class="px-6 py-4">{link.receiverName}</td>
-					<td class="px-6 py-4">{link.receiverEmail}</td>
-					<td class="px-6 py-4">
-						<span class={
-							link.status === 'Downloaded' ? 'text-green-400' :
-							link.status === 'Expired' ? 'text-red-400' : 'text-yellow-400'
-						}>
-							{link.status}
-						</span>
-					</td>
-					<td class="px-6 py-4">{link.downloadCount}</td>
-					<td class="px-6 py-4">{link.expiresIn} day(s)</td>
-					<td class="px-6 py-4">{new Date(link.sentAt).toLocaleString()}</td>
-					<td class="px-6 py-4">
-						<a
-							class="text-blue-400 underline hover:text-blue-300"
-							href={`/download/${link.token}`}
-							target="_blank"
-						>
-							Open Link
-						</a>
-					</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
-</div>
+<Table {columns} {rows} title="📁 All Uploaded Files" onDelete={handleDelete}/>

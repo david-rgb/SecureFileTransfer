@@ -23,7 +23,7 @@ public static class JwtTokenGenerator
 			issuer: config["Jwt:Issuer"],
 			audience: config["Jwt:Audience"],
 			claims: claims,
-			expires: DateTime.UtcNow.AddHours(6),
+			expires: DateTime.UtcNow.AddHours(2),
 			signingCredentials: creds
 		);
 

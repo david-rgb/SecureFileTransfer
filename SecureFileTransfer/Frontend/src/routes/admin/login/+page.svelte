@@ -82,6 +82,9 @@
             >
                 Log In
             </button>
+            <p class="mt-4 text-sm text-center">
+              Don't have an account? <a href="/register" class="text-blue-400 hover:underline">Create one</a>
+            </p>
         </form>
         
 	</div>

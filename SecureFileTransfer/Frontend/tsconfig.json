@@ -13,7 +13,8 @@
 		"baseUrl": ".",
 		"paths": {
 			"$app/*": ["./.svelte-kit/types/src/app/*"],
-			"$lib/*": ["src/lib/*"]
+			"$lib/*": ["src/lib/*"],
+			"$lib": ["src/lib"]
 	},
 	"types": ["vite/client"]
 }

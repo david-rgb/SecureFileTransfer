@@ -2,167 +2,214 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SecureFileSender.Api.Data;
 using SecureFileSender.Api.Models;
-using System.Security.Cryptography;
-using System.Text;
 using SecureFileSender.Api.DTOs;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Authorization;
+
 namespace SecureFileSender.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Authorize]
+    [Route("api/files")]
     public class FilesController : ControllerBase
     {
         private readonly AppDbContext _db;
+        private readonly IConfiguration _configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IDataProtector _protector;
 
-        public FilesController(AppDbContext db)
-        {
-            _db = db;
-        }
+        public FilesController(AppDbContext db, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IDataProtectionProvider provider)
+{
+    _db = db;
+    _configuration = configuration;
+    _httpContextAccessor = httpContextAccessor;
+    _protector = provider.CreateProtector("PasscodeProtector");
+}
+[HttpDelete("{id}")]
+public async Task<IActionResult> DeleteFile(int id)
+{
+	var file = await _db.UploadedFiles.FindAsync(id);
+	if (file == null) return NotFound();
+	_db.UploadedFiles.Remove(file);
+	await _db.SaveChangesAsync();
+	return Ok();
+}
+
+[Authorize]
+[HttpDelete("download-link/{id}")]
+public async Task<IActionResult> DeleteDownloadLink(int id)
+{
+	var email = HttpContext.User.Identity?.Name;
+	if (string.IsNullOrWhiteSpace(email))
+		return Unauthorized();
+
+	var admin = await _db.AdminUsers.FirstOrDefaultAsync(a => a.Email == email);
+	if (admin == null)
+		return Unauthorized();
+
+	var link = await _db.DownloadLinks
+		.Include(dl => dl.Files) // optional, if you want to inspect files
+		.FirstOrDefaultAsync(dl => dl.Id == id && dl.AdminUserId == admin.Id);
+
+	if (link == null)
+		return NotFound("Download link not found or access denied.");
+
+	_db.DownloadLinks.Remove(link);
+	await _db.SaveChangesAsync();
+
+	return Ok(new { message = "Download link deleted." });
+}
 
 
-        [HttpPost("share")]
+
+  [HttpPost("share")]
 public async Task<IActionResult> ShareFile([FromBody] ShareFileDto request)
 {
-    if (request.FilePaths == null || !request.FilePaths.Any())
-        return BadRequest("No file paths provided.");
+	if (request.FilePaths == null || !request.FilePaths.Any())
+		return BadRequest("No file paths provided.");
 
-    var missing = request.FilePaths.Where(path => !System.IO.File.Exists(path)).ToList();
-    if (missing.Any())
-        return NotFound($"These files were not found: {string.Join(", ", missing)}");
+	var missing = request.FilePaths.Where(path => !System.IO.File.Exists(path)).ToList();
+	if (missing.Any())
+		return BadRequest($"These files were not found: {string.Join(", ", missing)}");
 
-    var token = Guid.NewGuid().ToString();
-    var passcodeHash = string.IsNullOrWhiteSpace(request.Passcode)
-        ? null
-        : Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(request.Passcode)));
+	var adminEmail = HttpContext.User.Identity?.Name;
+	var admin = await _db.AdminUsers.FirstOrDefaultAsync(a => a.Email == adminEmail);
+	if (admin == null) return Unauthorized();
 
-    var customer = await _db.Customers
-        .FirstOrDefaultAsync(c => c.Email.ToLower() == request.CustomerEmail.ToLower());
+	// 🧠 Get or create customer
+	var customer = await _db.Customers
+		.FirstOrDefaultAsync(c => c.Email.ToLower() == request.CustomerEmail.ToLower());
 
-    if (customer == null)
-    {
-        customer = new Customer
-        {
-            Name = request.CustomerName,
-            Email = request.CustomerEmail
-        };
-        _db.Customers.Add(customer);
-        await _db.SaveChangesAsync();
-    }
+	if (customer == null)
+	{
+		customer = new Customer
+		{
+			Name = request.CustomerName,
+			Email = request.CustomerEmail,
+			LastName = request.CustomerLastName,
+			AdminUserId = admin.Id
+		};
+		_db.Customers.Add(customer);
+		await _db.SaveChangesAsync();
+	}
 
-    // Create a shared file link per file
-    foreach (var filePath in request.FilePaths)
-    {
-        var link = new SharedFileLink
-        {
-            Token = token,
-            FilePath = filePath,
-            PasscodeHash = passcodeHash,
-            ExpirationDate = DateTime.UtcNow.AddDays(request.ExpiresInDays),
-            CustomerId = customer.Id
-        };
+	// 🧠 Generate or use custom slug
+	string baseSlug = string.IsNullOrWhiteSpace(request.Slug)
+		? $"{request.CustomerName.ToLower().Replace(" ", "-")}-{customer.Id}"
+		: request.Slug.ToLower().Replace(" ", "-");
 
-        _db.SharedFileLinks.Add(link);
-    }
+	// 🛡️ Ensure slug uniqueness
+	int suffix = 1;
+	string finalSlug = baseSlug;
+	while (await _db.DownloadLinks.AnyAsync(dl => dl.Slug == finalSlug))
+	{
+		finalSlug = $"{baseSlug}-{suffix++}";
+	}
 
-    await _db.SaveChangesAsync();
+	var encryptedPasscode = string.IsNullOrWhiteSpace(request.Passcode)
+		? null
+		: _protector.Protect(request.Passcode);
 
-    var customerSlug = $"{customer.Name.ToLower().Replace(" ", "-")}-{token}";
-    var linkUrl = $"{Request.Scheme}://{Request.Host}/download/{customerSlug}";
-    return Ok(new { Link = linkUrl });
+	var downloadLink = new DownloadLink
+	{
+		Slug = finalSlug,
+		IsPasscodeProtected = !string.IsNullOrWhiteSpace(request.Passcode),
+		Passcode = encryptedPasscode,
+		ExpirationDate = DateTime.UtcNow.AddDays(request.ExpiresInDays),
+		AdminUserId = admin.Id,
+		CustomerId = customer.Id
+	};
+
+	foreach (var filePath in request.FilePaths)
+	{
+		var compressedName = Path.GetFileName(filePath);
+		var uploadedFile = await _db.UploadedFiles
+			.FirstOrDefaultAsync(f => f.CompressedFileName == compressedName);
+
+		if (uploadedFile != null)
+		{
+			downloadLink.Files.Add(uploadedFile);
+		}
+	}
+
+	_db.DownloadLinks.Add(downloadLink);
+	await _db.SaveChangesAsync();
+
+	var frontendBase = _configuration["FrontendBaseUrl"];
+	var linkUrl = $"{Request.Scheme}://{frontendBase}/download/{finalSlug}";
+
+	return Ok(new { Link = linkUrl });
 }
 
 
-        public class DownloadRequestDto
-{
-    public string Token { get; set; } = null!;
-    public string? Passcode { get; set; }
-    public string FileName { get; set; } = null!;
-}
-
-    [HttpPost("download")]
+[HttpPost("download")]
 public async Task<IActionResult> DownloadFile([FromBody] DownloadRequestDto request)
 {
-    Console.WriteLine($"Download request: token={request.Token}, fileName={request.FileName}");
+	if (request.FileId <= 0)
+		return BadRequest("Invalid file ID.");
 
-    if (string.IsNullOrWhiteSpace(request.FileName))
-        return BadRequest("Filename is required.");
+	var link = await _db.DownloadLinks
+		.Include(l => l.Files)
+		.FirstOrDefaultAsync(l => l.Files.Any(f => f.Id == request.FileId));
 
-    // Pull all links for this token
-    var links = await _db.SharedFileLinks
-        .Where(l => l.Token == request.Token)
-        .ToListAsync();
+	if (link == null)
+		return NotFound("Download link not found.");
 
-    // Now filter by filename in memory
-    var link = links.FirstOrDefault(l => Path.GetFileName(l.FilePath) == request.FileName);
+	if (link.ExpirationDate < DateTime.UtcNow)
+		return BadRequest("Download link has expired.");
 
-    if (link == null)
-        return NotFound("Download link not found.");
+	var file = link.Files.First(f => f.Id == request.FileId);
+	var fullPath = Path.Combine("uploads", file.CompressedFileName);
 
-    if (link.ExpirationDate < DateTime.UtcNow)
-        return BadRequest("Download link has expired.");
+	if (!System.IO.File.Exists(fullPath))
+		return NotFound("File not found on server.");
 
-    if (link.PasscodeHash != null)
-    {
-        if (string.IsNullOrWhiteSpace(request.Passcode))
-            return Unauthorized("Passcode required.");
+	file.DownloadCount++;
+await _db.SaveChangesAsync();
 
-        var passcodeHash = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(request.Passcode)));
-        if (passcodeHash != link.PasscodeHash)
-            return Unauthorized("Invalid passcode.");
-    }
-
-    if (!System.IO.File.Exists(link.FilePath))
-        return NotFound("File not found on server.");
-Console.WriteLine($"Found {links.Count} links for token.");
-foreach (var l in links)
-{
-    Console.WriteLine($"Link path: {l.FilePath}");
-}
-    link.DownloadCount++;
-    await _db.SaveChangesAsync();
-    var stream = new FileStream(link.FilePath, FileMode.Open, FileAccess.Read);
-    var fileName = Path.GetFileName(link.FilePath);
-    return File(stream, "application/octet-stream", fileName);
+	var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+	return File(stream, "application/octet-stream", file.OriginalFileName);
 }
 
 
 
 
-        [HttpGet("link/{slug}")]
+
+[HttpGet("link/{slug}")]
+[AllowAnonymous]
 public async Task<IActionResult> GetLinkInfo(string slug)
 {
-    if (string.IsNullOrWhiteSpace(slug))
-        return BadRequest("Invalid slug format.");
+	if (string.IsNullOrWhiteSpace(slug))
+		return BadRequest("Slug is required.");
 
-    var parts = slug.Split('-');
-    if (parts.Length < 5)
-        return BadRequest("Invalid slug format.");
+	var link = await _db.DownloadLinks
+		.Include(dl => dl.Files)
+		.Include(dl => dl.Customer)
+		.FirstOrDefaultAsync(dl => dl.Slug == slug.ToLower());
 
-    // Try to extract the last 5 parts and rebuild them as a GUID
-    var maybeGuid = string.Join("-", parts.Skip(parts.Length - 5));
+	if (link == null)
+		return NotFound("Download link not found.");
 
-    if (!Guid.TryParse(maybeGuid, out var tokenGuid))
-        return BadRequest("Invalid token in slug.");
+	// Check if link is expired
+	if (link.ExpirationDate < DateTime.UtcNow)
+		return BadRequest("This link has expired.");
 
-    var token = tokenGuid.ToString();
-
-    var link = await _db.SharedFileLinks.FirstOrDefaultAsync(l => l.Token == token);
-    if (link == null)
-        return NotFound("Download link not found.");
-
-
-    var files = await _db.SharedFileLinks
-    .Where(l => l.Token == token)
-    .ToListAsync();
-
-    return Ok(new
-    {
-        fileNames = files.Select(f => Path.GetFileName(f.FilePath)).ToList(),
-        downloadUrl = "/api/files/download",
-        token = token,
-        requiresPasscode = link.PasscodeHash != null,
-        expiresAt = link.ExpirationDate
-    });
+	return Ok(new
+	{
+		customer = new
+		{
+			name = link.Customer.Name,
+			email = link.Customer.Email
+		},
+		files = link.Files.Select(file => new
+		{
+			id = file.Id,
+			originalFileName = file.OriginalFileName,
+			compressedFileName = file.CompressedFileName
+		}).ToList(),
+		expiresAt = link.ExpirationDate,
+		requiresPasscode = link.IsPasscodeProtected
+	});
 }
 
-    }
-}
+}}

@@ -1,7 +1,11 @@
 {
-	"/": [],
+	"/": [
+		"src/routes/+page.ts"
+	],
 	"/admin/dashboard": [],
 	"/admin/login": [],
 	"/admin/send": [],
-	"/download/[token]": []
+	"/admin/settings": [],
+	"/download/[slug]": [],
+	"/register": []
 }

@@ -42,7 +42,14 @@ namespace SecureFileSender.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("AdminUserId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -52,13 +59,98 @@ namespace SecureFileSender.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AdminUserId");
+
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("SecureFileSender.Api.Models.DownloadLink", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AdminUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ExpirationDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsPasscodeProtected")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Passcode")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("Token")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminUserId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("DownloadLinks");
+                });
+
+            modelBuilder.Entity("SecureFileSender.Api.Models.EmailSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("AdminUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Port")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SenderDisplayName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SenderEmail")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SmtpServer")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("UseSSL")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminUserId")
+                        .IsUnique();
+
+                    b.ToTable("EmailSettings");
                 });
 
             modelBuilder.Entity("SecureFileSender.Api.Models.SharedFileLink", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AdminUserId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CustomerId")
@@ -74,8 +166,11 @@ namespace SecureFileSender.Api.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PasscodeHash")
+                    b.Property<string>("Passcode")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("RequiresPasscode")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Token")
                         .IsRequired()
@@ -83,9 +178,35 @@ namespace SecureFileSender.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AdminUserId");
+
                     b.HasIndex("CustomerId");
 
                     b.ToTable("SharedFileLinks");
+                });
+
+            modelBuilder.Entity("SecureFileSender.Api.Models.UploadSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UploadSessions");
                 });
 
             modelBuilder.Entity("SecureFileSender.Api.Models.UploadedFile", b =>
@@ -94,12 +215,24 @@ namespace SecureFileSender.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("AdminUserId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("CompressedFileName")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("DownloadCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("DownloadLinkId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("OriginalFileName")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SessionId")
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("SharedFileLinkId")
@@ -110,32 +243,103 @@ namespace SecureFileSender.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AdminUserId");
+
+                    b.HasIndex("DownloadLinkId");
+
                     b.HasIndex("SharedFileLinkId");
 
                     b.ToTable("UploadedFiles");
                 });
 
+            modelBuilder.Entity("SecureFileSender.Api.Models.Customer", b =>
+                {
+                    b.HasOne("SecureFileSender.Api.Models.AdminUser", "AdminUser")
+                        .WithMany()
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdminUser");
+                });
+
+            modelBuilder.Entity("SecureFileSender.Api.Models.DownloadLink", b =>
+                {
+                    b.HasOne("SecureFileSender.Api.Models.AdminUser", "AdminUser")
+                        .WithMany()
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SecureFileSender.Api.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdminUser");
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("SecureFileSender.Api.Models.EmailSettings", b =>
+                {
+                    b.HasOne("SecureFileSender.Api.Models.AdminUser", null)
+                        .WithOne("EmailSettings")
+                        .HasForeignKey("SecureFileSender.Api.Models.EmailSettings", "AdminUserId");
+                });
+
             modelBuilder.Entity("SecureFileSender.Api.Models.SharedFileLink", b =>
                 {
+                    b.HasOne("SecureFileSender.Api.Models.AdminUser", "AdminUser")
+                        .WithMany()
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("SecureFileSender.Api.Models.Customer", "Customer")
                         .WithMany("SharedLinks")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("AdminUser");
+
                     b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("SecureFileSender.Api.Models.UploadedFile", b =>
                 {
+                    b.HasOne("SecureFileSender.Api.Models.AdminUser", "AdminUser")
+                        .WithMany()
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SecureFileSender.Api.Models.DownloadLink", null)
+                        .WithMany("Files")
+                        .HasForeignKey("DownloadLinkId");
+
                     b.HasOne("SecureFileSender.Api.Models.SharedFileLink", null)
                         .WithMany("Files")
                         .HasForeignKey("SharedFileLinkId");
+
+                    b.Navigation("AdminUser");
+                });
+
+            modelBuilder.Entity("SecureFileSender.Api.Models.AdminUser", b =>
+                {
+                    b.Navigation("EmailSettings");
                 });
 
             modelBuilder.Entity("SecureFileSender.Api.Models.Customer", b =>
                 {
                     b.Navigation("SharedLinks");
+                });
+
+            modelBuilder.Entity("SecureFileSender.Api.Models.DownloadLink", b =>
+                {
+                    b.Navigation("Files");
                 });
 
             modelBuilder.Entity("SecureFileSender.Api.Models.SharedFileLink", b =>
